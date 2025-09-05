@@ -1,0 +1,110 @@
+# Git backup folder
+.git.old/
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# LaTeX error files
+*.bbl-SAVE-ERROR
+
+# Local report files
+results/**/*.txt
+
+# Archive folders
+**/archives/
+
+# CSV data files in figures
+papers/**/Figures/*.csv
+
+# Duplicate bibliography files
+papers/**/latex/bibliography.bib
+
+# Scripts folders in Results
+papers/**/Results/Scripts/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+venv/
+.env
+.env.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# pytest cache
+.pytest_cache/
+
+# Coverage directories
+htmlcov/
+.coverage
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data directories
+data/
+
+# VS Code specific
+.vscode/
+src/archives
+cache/
+.claude/
+.venv/
+config/
+docs/
+notebooks/
+src/database_access/archives/
+
+# Papers - allow LaTeX, figures, and bibliography
+# But still ignore auxiliary LaTeX files
+papers/**/*.aux
+papers/**/*.bbl
+papers/**/*.blg
+papers/**/*.fdb_latexmk
+papers/**/*.fls
+papers/**/*.log
+papers/**/*.out
+papers/**/*.synctex.gz
+papers/**/*.toc
+papers/**/*.lof
+papers/**/*.lot
+papers/**/*.nav
+papers/**/*.snm
+papers/**/*.vrb
+papers/**/*.bcf
+papers/**/*.run.xml
+papers/**/*-blx.bib
+
+# Allow important paper files
+!papers/**/*.tex
+!papers/**/*.bib
+!papers/**/*.png
+!papers/**/*.jpg
+!papers/**/*.pdf
+!papers/**/*.eps
+!papers/**/*.svg
+
+# But EXCLUDE these specific files (must come AFTER the allow rules)
+papers/CCF_paradigm/latex/CCF_Methodology.tex
+papers/CCF_paradigm/latex/CCF_paradigm_presentation.*
