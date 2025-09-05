@@ -1,3 +1,28 @@
+# Git backup folder
+.git.old/
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# LaTeX error files
+*.bbl-SAVE-ERROR
+
+# Local report files
+results/**/*.txt
+
+# Archive folders
+**/archives/
+
+# CSV data files in figures
+papers/**/Figures/*.csv
+
+# Duplicate bibliography files
+papers/**/latex/bibliography.bib
+
+# Scripts folders in Results
+papers/**/Results/Scripts/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
