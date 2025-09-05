@@ -1,0 +1,263 @@
+\subsection{Phase 4: Validation \& Deployment}
+
+\subsubsection{Step 6: Full Deployment}
+
+The full deployment phase applied all the trained models to annotate the complete CCF Database of 9.2 million sentences across 266,271 articles. We implemented a hierarchical classification strategy that directly mirrors the annotation protocol's structure of primary categories and their associated sub-categories, as illustrated in Figure~\ref{fig:hierarchical_annotation}. 
+
+The hierarchical approach reflects the conceptual organization of our annotation framework with eleven primary detection categories, each with specific sub-categories. The eight thematic frames (\emph{Economic}, \emph{Health}, \emph{Security}, \emph{Justice}, \emph{Political}, \emph{Scientific}, \emph{Environmental}, and \emph{Cultural Frame Detection}) function as primary categories with their internal distinctions—for example, \emph{Economic Frame Detection}, when positive (=1), triggers six economic sub-models (\emph{Negative/Positive Economic Impacts}, \emph{Costs/Benefits of Climate Action}, \emph{Economic Sector Footprint}), while a negative detection (=0) bypasses these entirely. 
+
+\begin{figure}[b!]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[
+    % Style definitions with reduced widths
+    stage/.style={rectangle, rounded corners=6pt, minimum height=2.3cm, text width=3.8cm, align=center, font=\small},
+    input/.style={stage, draw=orange!70, fill=orange!5, text width=3.5cm},
+    detect/.style={stage, draw=blue!70, fill=blue!5, text width=3.8cm},
+    process/.style={stage, draw=green!70, fill=green!5, text width=3.5cm},
+    skip/.style={stage, draw=red!70, fill=red!5, text width=3.5cm},
+    storage/.style={cylinder, draw=purple!70, fill=purple!5, shape border rotate=90, minimum height=2.8cm, minimum width=3cm, align=center, font=\small, aspect=0.3},
+    arrow/.style={->, >=latex, line width=1.5pt, color=gray!60},
+    yes/.style={arrow, color=green!60},
+    no/.style={arrow, color=red!60},
+    label/.style={font=\tiny\bfseries}
+]
+
+% Stage 1: Input
+\node[input] (input) {
+    \scriptsize\textbf{Input Layer}\\[-2pt]
+    \scriptsize\textbf{Sentence Processing}\\[-2pt]
+    \textit{\scriptsize "Carbon pricing will}\\[-2.5pt]
+    \textit{\scriptsize boost clean energy jobs"}\\[-2pt]
+    \scriptsize{One of 9.2M sentences}
+};
+
+% Stage 2: Detection (parallel branches)
+\node[detect, above right=1.2cm and 1.2cm of input] (detect_yes) {
+    \scriptsize\textbf{Detection Layer}\\[-2pt]
+    \scriptsize\textbf{Main Category}\\[-2pt]
+    \textit{\scriptsize e.g., Economic Frame}\\[-2pt]
+    \colorbox{green!20}{\scriptsize\textbf{Prediction = 1}}\\[-2pt]
+    \scriptsize{→ Activate sub-models}
+};
+
+\node[detect, below right=1.2cm and 1.2cm of input] (detect_no) {
+    \scriptsize\textbf{Detection Layer}\\[-2pt]
+    \scriptsize\textbf{Main Category}\\[-2pt]
+    \textit{\scriptsize e.g., Health Frame}\\[-2pt]
+    \colorbox{red!20}{\scriptsize\textbf{Prediction = 0}}\\[-2pt]
+    \scriptsize{→ Skip sub-models}
+};
+
+% Stage 3: Conditional execution
+\node[process, right=1.5cm of detect_yes] (execute) {
+    \scriptsize\textbf{Sub-classification}\\[-2pt]
+    \scriptsize\textbf{Apply Sub-models}\\[-2pt]
+    \textit{\scriptsize Benefits: 1, Costs: 0}\\[-2.5pt]
+    \textit{\scriptsize Positive: 1, Negative: 0}\\[-2pt]
+    \scriptsize{Sub-models executed}
+};
+
+\node[skip, right=1.5cm of detect_no] (bypass) {
+    \scriptsize\textbf{Skip Processing}\\[-2pt]
+    \scriptsize\textbf{No Sub-models}\\[-2pt]
+    \textit{\scriptsize Sub-categories}\\[-2.5pt]
+    \textit{\scriptsize not needed}
+};
+
+% Stage 4: Storage - positioned at center between execute and bypass
+\node[storage] (database) at ($(execute.east)!0.5!(bypass.east) + (2cm,0)$) {
+    \scriptsize\textbf{CCF Database}\\[-2pt]
+    \scriptsize 9.2M sentences\\[-2.5pt]
+    \scriptsize 266K articles
+};
+
+% Connections
+\draw[arrow] (input.15) -- (detect_yes.west);
+\draw[arrow] (input.-15) -- (detect_no.west);
+
+\draw[yes, line width=1.8pt] (detect_yes) -- node[above, label] {\textcolor{green!70}{if = 1}} (execute);
+\draw[no, line width=1.8pt] (detect_no) -- node[below, label] {\textcolor{red!70}{if = 0}} (bypass);
+
+\draw[arrow] (execute.east) -- (database.west);
+\draw[arrow] (bypass.east) -- (database.west);
+
+% Architecture info box
+\node[below=0.3cm of input, draw=gray!50, fill=gray!3, rounded corners=4pt, text width=3.2cm, align=center, font=\tiny] {
+    \textbf{Parallel Processing}\\
+    65 detection models\\
+    BERT / CamemBERT
+};
+
+% Visual indicator for parallel processing - better positioned
+\node[above=0.3cm of detect_no, font=\tiny\itshape, text=gray!50] {61 other models};
+\node[above=0.1cm of detect_no, font=\tiny, text=gray!50] {$\vdots$};
+
+\end{tikzpicture}
+}
+\caption{Hierarchical annotation pipeline. The system processes each sentence through detection models that determine whether corresponding sub-category models should be applied, enabling efficient annotation of the entire corpus.}
+\label{fig:hierarchical_annotation}
+\end{figure}
+
+Similarly, the three other primary categories follow this conditional logic: \emph{Actors/Messengers Detection} activates nine actor-type sub-models (\emph{Health Expert}, \emph{Economic Expert}, \emph{Security Expert}, \emph{Legal Expert}, \emph{Cultural Expert}, \emph{Natural Scientist}, \emph{Social Scientist}, \emph{Activist}, \emph{Public Official}), \emph{Event Detection} triggers eight event-type classifications (\emph{Extreme Weather Event}, \emph{Meeting/Conference}, \emph{Publication}, \emph{Election}, \emph{Policy Announcement}, \emph{Judiciary Decision}, \emph{Cultural Event}, \emph{Protest}), and \emph{Solutions Detection} applies two solution sub-categories (\emph{Mitigation Strategy}, \emph{Adaptation Strategy}). The deployment also processed standalone primary categories without hierarchical structure—\emph{Emotional Tone} (\emph{Positive Emotion}/\emph{Negative Emotion}/\emph{Neutral Emotion}), \emph{Geographic Focus} (\emph{Canadian Context}), \emph{Urgency/Alarmism}. 
+
+In addition to the custom-trained classification models, we employed pre-trained Named Entity Recognition (NER) models, selected based on empirical evaluation for optimal performance on our dataset. We implemented a hybrid approach tailored to each language: for English texts, we used BERT-base-NER\footnote{Available at: \url{https://huggingface.co/dslim/bert-base-NER}} for all three entity types (Person, Organization, Location), while for French texts, we combined spaCy's fr\_core\_news\_lg model\footnote{Available at: \url{https://spacy.io/models/fr}} for person entities with CamemBERT-NER\footnote{Available at: \url{https://huggingface.co/Jean-Baptiste/camembert-ner}} for organization and location entities. This hybrid strategy was used to leverage the respective strengths of each model: spaCy's superior performance on French person names and CamemBERT-NER's robust identification of French organizational and geographical entities (see Table~\ref{tab:ner_performance} in the Appendix for performance metrics).
+
+\subsubsection{Step 7 \& 8: Final validation and inter-coder reliability}
+
+The final validation phase employs a stratified sampling scheme designed to ensure robust performance evaluation across all 65 annotation categories. Following the completion of full database annotation (9.2 million sentences), we extracted a balanced validation sample of 1,000 sentences (500 per language) using root-inverse probability weighting\footnote{The weighting formula $w_i \propto \sum_j 1/\sqrt{f_j}$ assigns higher sampling probability to sentences containing rare categories, where $f_j$ represents the frequency of category $j$ present in sentence $i$. For example, a sentence annotated with both \textit{Economic Frame} (appearing in 15.4\% of the corpus) and \textit{Loss of Indigenous Practices} (appearing in 0.28\% of the corpus) would receive a weight of approximately $1/\sqrt{0.154} + 1/\sqrt{0.0028} = 2.55 + 18.90 = 21.45$, making it roughly 8 times more likely to be selected than a sentence containing only \textit{Economic Frame}.} combined with strict constraints to ensure statistical validity. Two critical constraints were used : first, a minimum threshold of 40 positive examples per category to ensure sufficient statistical power for reliable performance estimation. Without this constraint, rare categories like \textit{Military Base Disruption} (0.00004\% prevalence in the database) would have too few examples to meaningfully assess model accuracy. Second, a 35\% maximum allocation to prevent any single prevalent category from monopolizing the validation set. For instance, without this constraint, \textit{Actors/Messengers Detection} (present in 48.8\% of database sentences) could theoretically dominate the entire sample, leaving insufficient space for other important categories.
+
+The validation results demonstrate robust performance across all annotation dimensions, with an overall F1 macro score of 0.866 (0.869 for English, 0.864 for French). As detailed in Table~\ref{tab:detailed_validation_metrics} (Appendix B), primary detection categories achieve the highest performance, with \textit{Canadian Context} (F1=0.982) and \textit{Actors/Messengers Detection} (F1=0.961) showing near-perfect classification. Thematic frames maintain strong performance despite their semantic complexity, with \textit{Scientific Frame Detection} (F1=0.890) and \textit{Environmental Frame Detection} (F1=0.871) leading this category. The hierarchical classification strategy proves particularly effective, as evidenced by consistently higher recall scores for detection categories (mean recall=0.891) that trigger conditional sub-category evaluation. Notably, rare categories such as \textit{Military Base Disruption} and \textit{Military Disaster Response} show perfect precision despite minimal representation.
+
+To assess temporal stability, we conducted stratified validation across five temporal periods (1980s-2020s) that revealed minimal performance drift ($\Delta$F1 < 1.1\%) despite evolving media discourse patterns. This temporal consistency validates the models' generalization capacity across the full 46-year corpus span. Inter-coder reliability assessment, currently in progress with a second independent annotator, will evaluate the same 1000 randomly selected sentences from the validation set. Final inter-coder metrics will be reported upon completion of the dual-annotation process.
+
+\begin{table}[h!]
+\centering
+\caption{Overall validation performance metrics}
+\label{tab:final_validation_metrics}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Language} & \textbf{F1 Macro} & \textbf{F1 Micro} & \textbf{F1 Weighted} \\
+\midrule
+English (EN) & 0.869 & 0.909 & 0.911 \\
+French (FR) & 0.864 & 0.902 & 0.905 \\
+\midrule
+\textbf{Combined (ALL)} & \textbf{0.866} & \textbf{0.905} & \textbf{0.908} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Appendix B: Complete Framework and Performance Tables}
+\label{sec:appendix_tables}
+\setcounter{table}{0}  % Reset table counter for appendix
+\renewcommand{\thetable}{B\arabic{table}}  % Prefix appendix tables with 'B'
+\renewcommand\theHtable{AppendixB.\thetable}  % Fix hyperref links for appendix tables
+
+\landscape
+{\footnotesize
+\phantomsection
+\begin{longtable}{p{0.5cm}p{5cm}p{16cm}}
+\caption{Complete CCF annotation framework: All 65 categories with operational definitions}
+\label{tab:complete_framework_appendix}
+\\
+\toprule
+\textbf{\#} & \textbf{Category} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{c}{\tablename\ \thetable\ -- \textit{Continued from previous page}} \\
+\toprule
+\textbf{\#} & \textbf{Category} & \textbf{Description} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\textit{Continued on next page}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{3}{l}{\cellcolor{gray!10}\textbf{THEMATIC FRAMES}} \\
+\midrule
+\multicolumn{3}{l}{\textit{Economic Frame}} \\
+1 & Economic Frame Detection & Presence of any economic dimension of climate change \\
+2 & Negative Economic Impacts & Economic losses from climate change (e.g., floods, infrastructure damage) \\
+3 & Positive Economic Impacts & Economic benefits from climate action (e.g., green jobs, energy savings) \\
+4 & Costs of Climate Action & Economic costs of transitioning to low-carbon economy \\
+5 & Benefits of Climate Action & Economic opportunities from climate investments \\
+6 & Economic Sector Footprint & Carbon intensity of economic sectors \\
+\midrule
+\multicolumn{3}{l}{\textit{Health Frame}} \\
+7 & Health Frame Detection & Presence of any relationship between climate and health \\
+8 & Negative Health Impacts & Heat stress, disease spread, respiratory issues, mental health burdens, mortality \\
+9 & Positive Health Impacts* & Potential benefits to health from climate change \\
+10 & Health Co-benefits & Better air quality, improved diets, avoided premature deaths, mental well-being \\
+11 & Health Sector Footprint* & Carbon footprint of the healthcare sector \\
+\midrule
+\multicolumn{3}{l}{\textit{Security Frame}} \\
+12 & Security Frame Detection & Presence of any security dimension \\
+13 & Military Disaster Response* & Army called in for fires, floods, evacuations or relief \\
+14 & Military Base Disruption* & Climate threats to military facilities or readiness \\
+15 & Climate-Driven Displacement & Military management of evacuations or refugee camps \\
+16 & Resource Conflict & Tensions or violence over water, land or minerals worsened by climate change \\
+17 & Defense Sector Footprint* & Carbon footprint of military operations \\
+\midrule
+\multicolumn{3}{l}{\textit{Justice Frame}} \\
+18 & Justice Frame Detection & Presence of any social justice angle \\
+19 & Winners \& Losers & Groups that benefit or suffer from climate measures (workers, vulnerable populations) \\
+20 & North-South Responsibility & Common-but-differentiated responsibilities between high and low-income countries \\
+21 & Unequal Impacts & Disproportionate climate impacts on vulnerable groups \\
+22 & Unequal Access & Differential access to resources, adaptation, or clean technology \\
+23 & Intergenerational Justice & Responsibilities to future generations \\
+\midrule
+\multicolumn{3}{l}{\textit{Political Frame}} \\
+24 & Political Frame Detection & Presence of any policy measure or political discussion \\
+25 & Policy Measures & Concrete climate laws, regulations, or programmes under debate or in force \\
+26 & Political Debate & Parliamentary disputes, party platforms \\
+27 & Political Positioning & Strategic positioning or partisan signalling around climate \\
+28 & Public Opinion & Polls or surveys on climate and energy \\
+\midrule
+\multicolumn{3}{l}{\textit{Scientific Frame}} \\
+29 & Scientific Frame Detection & Presence of any scientific aspect \\
+30 & Scientific Controversy & Debates on climate change reality, causes, thresholds, geoengineering ethics \\
+31 & Discovery \& Innovation & New findings on climate impacts or emerging technologies (e.g., carbon capture) \\
+32 & Scientific Uncertainty & Expressions of doubt or uncertainty about climate science \\
+33 & Scientific Certainty & Strong consensus statements about climate science \\
+\midrule
+\multicolumn{3}{l}{\textit{Environmental Frame}} \\
+34 & Environmental Frame Detection & Presence of any ecological dimension \\
+35 & Habitat Loss & Destruction of natural habitats due to climate change \\
+36 & Species Loss & Extinction or endangerment of species \\
+\midrule
+\multicolumn{3}{l}{\textit{Cultural Frame}} \\
+37 & Cultural Frame Detection & Presence of any cultural aspect \\
+38 & Artistic Representation & Books, documentaries, plays, exhibitions portraying climate themes \\
+39 & Event Disruption & Sports or cultural events threatened or cancelled due to climate conditions \\
+40 & Loss of Indigenous Practices & Erosion of traditional hunting, fishing, or cultural rituals linked to climate \\
+41 & Cultural Sector Footprint & Emissions from film production, fashion, large festivals, etc. \\
+\midrule
+\multicolumn{3}{l}{\cellcolor{gray!10}\textbf{PRIMARY CATEGORIES}} \\
+\midrule
+\multicolumn{3}{l}{\textit{Actors/Messengers}} \\
+42 & Actors/Messengers Detection & Presence of any messenger, expert or authority figure \\
+43 & Health Expert & Physicians, epidemiologists, health ministers, public health officials \\
+44 & Economic Expert & Economists, finance ministers, market analysts, central bank officials \\
+45 & Security Expert & Military officers, defense strategists, security scholars \\
+46 & Legal Expert & Lawyers, judges, legal scholars, justice ministers \\
+47 & Cultural Expert & Artists, writers, athletes, arts scholars commenting on climate change \\
+48 & Natural Scientist & Natural science researchers or academics \\
+49 & Social Scientist & Social science researchers or academics \\
+50 & Activist & Environmental NGO spokespeople or well-known climate activists \\
+51 & Public Official & Civil servants or government officials speaking in an official capacity \\
+\midrule
+\multicolumn{3}{l}{\textit{Events}} \\
+52 & Event Detection & Mentions at least one specific event type \\
+53 & Extreme Weather Event & Arrival or unfolding of floods, wildfires, hurricanes, heatwaves, etc. \\
+54 & Meeting/Conference & International meetings such as COP, UN summits, major national conferences \\
+55 & Publication & Publication of governmental, NGO or scientific reports (e.g., IPCC, Lancet) \\
+56 & Election & Climate issues raised during local, provincial or national elections \\
+57 & Policy Announcement & Debut or unveiling of new climate laws, regulations or action plans \\
+58 & Judiciary Decision & Court rulings, trials, regulatory hearings on climate or environment \\
+59 & Cultural Event & Sports, artistic, or cultural events (Olympics, marathon, concert, theatre) \\
+60 & Protest & Demonstrations or strikes (e.g., climate strike, anti-pipeline protest) \\
+\midrule
+\multicolumn{3}{l}{\textit{Solutions}} \\
+61 & Solutions Detection & Mentions any mitigation or adaptation measure \\
+62 & Mitigation Strategy & Measures to reduce GHG emissions or enhance carbon sinks \\
+63 & Adaptation Strategy & Measures to increase social or ecological resilience to climate impacts \\
+\midrule
+\multicolumn{3}{l}{\cellcolor{gray!10}\textbf{EMOTIONAL TONE}} \\
+64 & Positive Emotion & Hope, optimism, enthusiasm about climate solutions \\
+65 & Negative Emotion & Fear, anxiety, despair about climate impacts \\
+66 & Neutral Emotion & No clear emotional tone, factual reporting \\
+\midrule
+\multicolumn{3}{l}{\cellcolor{gray!10}\textbf{GEOGRAPHIC FOCUS}} \\
+67 & Canadian Context & Canadian places, actors, data, and policies \\
+\midrule
+\multicolumn{3}{l}{\cellcolor{gray!10}\textbf{URGENCY/ALARMISM}} \\
+68 & Urgency/Alarmism & Conveys immediate danger, crisis, or ``code red'' urgency \\
+\bottomrule
+\end{longtable}
+\vspace{0.5em}
+\noindent\footnotesize
+* Insufficient training data (fewer than 10 positive examples in training set).
+} % end \footnotesize
+\endlandscape

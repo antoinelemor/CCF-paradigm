@@ -1,0 +1,81 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+venv/
+.env
+.env.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# pytest cache
+.pytest_cache/
+
+# Coverage directories
+htmlcov/
+.coverage
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data directories
+data/
+
+# VS Code specific
+.vscode/
+src/archives
+cache/
+.claude/
+.venv/
+config/
+docs/
+notebooks/
+src/database_access/archives/
+
+# Papers - allow LaTeX, figures, and bibliography
+# But still ignore auxiliary LaTeX files
+papers/**/*.aux
+papers/**/*.bbl
+papers/**/*.blg
+papers/**/*.fdb_latexmk
+papers/**/*.fls
+papers/**/*.log
+papers/**/*.out
+papers/**/*.synctex.gz
+papers/**/*.toc
+papers/**/*.lof
+papers/**/*.lot
+papers/**/*.nav
+papers/**/*.snm
+papers/**/*.vrb
+papers/**/*.bcf
+papers/**/*.run.xml
+papers/**/*-blx.bib
+
+# Allow important paper files
+!papers/**/*.tex
+!papers/**/*.bib
+!papers/**/*.png
+!papers/**/*.jpg
+!papers/**/*.pdf
+!papers/**/*.eps
+!papers/**/*.svg
