@@ -1,5 +1,6 @@
 # Git backup folder
 .git.old/
+papers/CCF_paradigm/latex/CCF_Methodology.tex
 
 # macOS system files
 .DS_Store
