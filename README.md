@@ -1,4 +1,22 @@
-# CCF-paradigm: analyzing multi-frame climate communication dynamics in Canadian media
+<div align="center">
+
+<a href="https://ccf-project.ca">
+  <img src="https://ccf-project.ca/static/assets/logos/ccf_icone.png" alt="Canadian Climate Framing" width="130">
+</a>
+
+# CCF-paradigm
+
+**Analyzing multi-frame climate communication dynamics in Canadian media, built on the [Canadian Climate Framing project](https://ccf-project.ca).**
+
+*A lighthouse on Canada's climate coverage*
+
+[![Website](https://img.shields.io/badge/Website-ccf--project.ca-0f8a76?style=flat-square)](https://ccf-project.ca)
+[![Live observatory](https://img.shields.io/badge/Live-observatory-12b48c?style=flat-square)](https://ccf-project.ca/observatory)
+[![Data platform](https://img.shields.io/badge/Data-data.ccf--project.ca-0e2a47?style=flat-square)](https://data.ccf-project.ca)
+
+</div>
+
+---
 
 > **⚠️ Work in progress**: This repository is under active development. Code, analyses, and documentation are being continuously updated and refined. Results should be considered preliminary until the final publication.
 
