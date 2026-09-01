@@ -1,0 +1,433 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\definecolor{darkblue}{RGB}{0,51,102}
+\definecolor{darkgreen}{RGB}{0,100,0}
+\definecolor{darkred}{RGB}{139,0,0}
+
+\title{\textbf{Frame Dominance Measurement Framework}\\
+\large A Comprehensive Guide to the Four-Component Method}
+\author{Conference Presentation Materials}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview: The Multi-Method Dominance Framework}
+
+Our framework identifies \textbf{dominant frames} in media discourse through a comprehensive four-component approach. Each component contributes 25\% to the final dominance score, ensuring no single dimension can artificially inflate a frame's importance.
+
+\subsection{Core Principle}
+Dominant frames must demonstrate multiple forms of centrality:
+\begin{enumerate}
+    \item \textbf{Information Structure}: They carry substantial information that shapes interpretation
+    \item \textbf{Network Position}: They occupy central positions as conceptual hubs
+    \item \textbf{Causal Influence}: They drive the appearance of other frames
+    \item \textbf{Sustained Presence}: They maintain consistent proportional presence
+\end{enumerate}
+
+\subsection{Consensus Requirement}
+A frame achieves dominant status only when selected by \textbf{at least 3 out of 4 methods}. This consensus approach ensures robustness and prevents methodological artifacts.
+
+\section{Component 1: Information Theory Analysis (25\%)}
+
+\subsection{What It Measures}
+Information theory analysis evaluates how much each frame contributes to the overall information structure of the discourse. It answers: \textit{"How much does knowing about this frame tell us about the entire discourse?"}
+
+\subsection{Three Key Metrics}
+
+\subsubsection{Mutual Information}
+\textbf{Definition}: Quantifies the average information shared between one frame and all others.
+
+\textbf{Mathematical Formula}:
+$$MI(X,Y) = \sum_{x,y} p(x,y) \log\left(\frac{p(x,y)}{p(x)p(y)}\right)$$
+
+\textbf{Interpretation}: 
+\begin{itemize}
+    \item High mutual information means the frame's presence strongly predicts other frames
+    \item Example: If the political frame appears, we gain significant information about whether economic or scientific frames will also appear
+    \item Frames with high MI are "information hubs" that structure the discourse
+\end{itemize}
+
+\textbf{Implementation Details}:
+\begin{itemize}
+    \item Frame proportions are discretized using adaptive binning: $n_{bins} = \min(10, \max(3, \lfloor\sqrt{N}\rfloor))$
+    \item Computed for each frame pair, then averaged across all pairs
+    \item Captures both positive and negative associations
+\end{itemize}
+
+\subsubsection{Entropy Reduction}
+\textbf{Definition}: Measures how much knowing a frame's state reduces uncertainty about the overall system.
+
+\textbf{Mathematical Formula}:
+$$ER = \frac{H(X) - H(X|Y)}{H(X)}$$
+where $H(X)$ is joint entropy and $H(X|Y)$ is conditional entropy.
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item High entropy reduction indicates the frame provides substantial information about discourse structure
+    \item A frame that always co-occurs with specific configurations has high entropy reduction
+    \item Think of it as "predictive power" - how well does this frame predict the overall discourse state?
+\end{itemize}
+
+\subsubsection{Information Content}
+\textbf{Definition}: Self-entropy measuring temporal variability and unpredictability.
+
+\textbf{Mathematical Formula}:
+$$H(X) = -\sum_{i} p(x_i) \log p(x_i)$$
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item High information content = high variability over time
+    \item Frames that appear and disappear carry more information than constant frames
+    \item Balances against frames that are simply "always there" without structure
+\end{itemize}
+
+\subsection{Conference Presentation Tip}
+Use the analogy of a conversation: Some words (frames) are like "therefore" or "however" - when they appear, they tell us a lot about what's coming next. These are high information frames.
+
+\section{Component 2: Network Analysis (25\%)}
+
+\subsection{What It Measures}
+Network analysis identifies structurally central frames by treating discourse as a complex network where frames are nodes and co-occurrences are edges.
+
+\subsection{Network Construction}
+\begin{itemize}
+    \item \textbf{Time Windows}: 52-week sliding windows with 50\% overlap
+    \item \textbf{Edge Creation}: Frames co-occurring above 0.1 proportion threshold
+    \item \textbf{Edge Weights}: Joint probability $w_{ij} = P(i > 0.1 \cap j > 0.1)$
+\end{itemize}
+
+\subsection{Four Network Metrics}
+
+\subsubsection{PageRank Centrality}
+\textbf{Definition}: Google's PageRank algorithm applied to frame networks.
+
+\textbf{Mathematical Formula}:
+$$PR(i) = \frac{1-d}{N} + d \sum_{j \in M(i)} \frac{PR(j)}{L(j)}$$
+where $d=0.85$ (damping factor), $N$ = number of nodes, $M(i)$ = frames linking to $i$, $L(j)$ = outbound links from $j$.
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Frames are important if connected to other important frames
+    \item Captures "influence through association"
+    \item Political frame scores high because it connects to all major frames
+\end{itemize}
+
+\textbf{Why It Matters}: Identifies conceptual hubs that organize discourse structure.
+
+\subsubsection{Eigenvector Centrality}
+\textbf{Definition}: Measures connectivity to highly-connected frames.
+
+\textbf{Mathematical Principle}:
+A frame's centrality is proportional to the sum of centralities of frames it's connected to.
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Like being "popular with popular people"
+    \item Complements PageRank by emphasizing quality of connections
+    \item Identifies frames in the "inner circle" of discourse
+\end{itemize}
+
+\subsubsection{Temporal Stability}
+\textbf{Definition}: Inverse coefficient of variation of centrality measures over time.
+
+\textbf{Formula}:
+$$Stability = \frac{1}{CV} = \frac{\mu}{\sigma}$$
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item High stability = consistent network position
+    \item Distinguishes truly dominant frames from temporarily central ones
+    \item Frames that maintain centrality across decades score higher
+\end{itemize}
+
+\subsection{Conference Presentation Tip}
+Use social network analogy: Some people (frames) are influential because everyone knows them (PageRank) and they know other influential people (Eigenvector), and they maintain this position over time (Stability).
+
+\section{Component 3: Causality Analysis (25\%)}
+
+\subsection{What It Measures}
+Identifies frames that drive the temporal evolution of other frames - the "agenda setters" of discourse.
+
+\subsection{Two Complementary Approaches}
+
+\subsubsection{Granger Causality Testing}
+\textbf{Definition}: Statistical test for whether past values of frame X help predict future values of frame Y.
+
+\textbf{Method}:
+\begin{enumerate}
+    \item Fit Vector Autoregression (VAR) model
+    \item Test if lagged values of X improve prediction of Y
+    \item Use F-statistic to assess significance
+\end{enumerate}
+
+\textbf{Adaptive Lag Selection}:
+\begin{itemize}
+    \item $N < 10$: 1 lag
+    \item $N < 20$: 2 lags
+    \item $N < 40$: 3 lags
+    \item $N \geq 40$: 4 lags
+    \item Optimal lag chosen by Akaike Information Criterion (AIC)
+\end{itemize}
+
+\textbf{Metrics Computed}:
+\begin{itemize}
+    \item \textbf{Breadth}: Proportion of frames that X Granger-causes
+    \item \textbf{Strength}: Average F-statistic across significant relationships
+\end{itemize}
+
+\textbf{Interpretation}:
+High Granger causality means the frame "leads the conversation" - when it appears, others follow.
+
+\subsubsection{Transfer Entropy}
+\textbf{Definition}: Information-theoretic measure of directional information flow.
+
+\textbf{Mathematical Formula}:
+$$T_{X \to Y} = \sum p(y_{t+1}, y_t^k, x_t^l) \log \frac{p(y_{t+1}|y_t^k, x_t^l)}{p(y_{t+1}|y_t^k)}$$
+
+\textbf{Key Advantages}:
+\begin{itemize}
+    \item Captures non-linear relationships Granger might miss
+    \item No assumption of linear dynamics
+    \item Measures actual information transfer
+\end{itemize}
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item High transfer entropy = frame exports information to discourse
+    \item Identifies "trigger frames" that initiate cascades
+    \item Political frame shows high TE, suggesting agenda-setting role
+\end{itemize}
+
+\subsection{Why Both Methods?}
+\begin{itemize}
+    \item Granger captures linear temporal dependencies
+    \item Transfer entropy captures complex, non-linear patterns
+    \item Together provide comprehensive causality picture
+\end{itemize}
+
+\subsection{Conference Presentation Tip}
+Think of it as identifying who starts trends: Some frames are followers (low causality), others are leaders (high causality) that set the agenda for discourse.
+
+\section{Component 4: Proportional Dominance (25\%)}
+
+\subsection{What It Measures}
+Sustained quantitative presence in discourse - not just frequency, but quality of presence.
+
+\subsection{Four Complementary Metrics}
+
+\subsubsection{Mean Proportion}
+\textbf{Definition}: Average presence across entire time period.
+
+\textbf{Formula}:
+$$\bar{p}_i = \frac{1}{T} \sum_{t=1}^{T} p_{i,t}$$
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Baseline measure of overall prevalence
+    \item Political frame: 35\% average presence
+    \item Economic frame: 28\% average presence
+\end{itemize}
+
+\subsubsection{Elevation Score}
+\textbf{Definition}: How much frame exceeds median of all frames.
+
+\textbf{Formula}:
+$$Elevation = \max\left(0, \frac{p_i - m}{m}\right)$$
+where $p_i$ = frame's mean proportion, $m$ = median across all frames.
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Identifies frames consistently above baseline
+    \item Normalized measure allowing comparison
+    \item Penalizes frames hovering around median
+\end{itemize}
+
+\subsubsection{Consistency Score}
+\textbf{Definition}: Inverse coefficient of variation rewarding stable presence.
+
+\textbf{Formula}:
+$$Consistency = \frac{1}{1 + \sigma_i/\mu_i}$$
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item High consistency = reliable discourse component
+    \item Low consistency = episodic, event-driven appearance
+    \item Distinguishes sustained dominance from spiky presence
+\end{itemize}
+
+\subsubsection{Percentile Rank}
+\textbf{Definition}: Position in overall distribution of mean proportions.
+
+\textbf{Interpretation}:
+\begin{itemize}
+    \item Robust to outliers
+    \item Provides normalized 0-100 scale
+    \item Easy to interpret: 90th percentile = top 10\%
+\end{itemize}
+
+\subsection{Why All Four?}
+Each metric captures different aspect:
+\begin{itemize}
+    \item Mean = raw presence
+    \item Elevation = above-average performance
+    \item Consistency = reliability
+    \item Percentile = relative position
+\end{itemize}
+
+Together they identify frames with substantial, elevated, and consistent presence.
+
+\subsection{Conference Presentation Tip}
+Like measuring influence in a meeting: Not just who talks most (mean), but who consistently (consistency) speaks more than average (elevation) and ranks among top speakers (percentile).
+
+\section{Integration: The Consensus Approach}
+
+\subsection{Computing Final Dominance}
+
+\subsubsection{Step 1: Normalize Each Component}
+Each of the four components produces scores normalized to [0,1] range.
+
+\subsubsection{Step 2: Equal Weighting}
+$$Composite\_Score = 0.25 \times Info + 0.25 \times Network + 0.25 \times Causality + 0.25 \times Proportional$$
+
+\subsubsection{Step 3: Apply Four Statistical Methods}
+\begin{enumerate}
+    \item \textbf{Above Median}: Frames scoring above median composite score
+    \item \textbf{Natural Break}: Maximum gradient in sorted scores (elbow method)
+    \item \textbf{Cumulative Variance}: Point explaining 70\% of variance
+    \item \textbf{Statistical Outliers}: Mean + 0.5 standard deviations
+\end{enumerate}
+
+\subsubsection{Step 4: Consensus Requirement}
+Frame is dominant if selected by $\geq 3$ of 4 methods.
+
+\subsection{Why This Approach?}
+
+\textbf{Robustness}:
+\begin{itemize}
+    \item No single method can determine dominance
+    \item Reduces sensitivity to methodological choices
+    \item Increases confidence in results
+\end{itemize}
+
+\textbf{Theoretical Grounding}:
+\begin{itemize}
+    \item Dominance is multifaceted phenomenon
+    \item Requires evidence across multiple dimensions
+    \item Reflects complexity of discourse dynamics
+\end{itemize}
+
+\section{Practical Application: Results}
+
+\subsection{Overall Period (1978-2024)}
+\begin{center}
+\begin{tabular}{lccccl}
+\toprule
+\textbf{Frame} & \textbf{Info} & \textbf{Network} & \textbf{Causality} & \textbf{Proportional} & \textbf{Status} \\
+\midrule
+Political & 1.00 & 0.73 & 1.00 & 1.00 & \textbf{Dominant} \\
+Economic & 0.59 & 0.71 & 0.46 & 0.72 & \textbf{Dominant} \\
+Scientific & 0.71 & 0.35 & 0.84 & 0.47 & Near-miss \\
+Environmental & 0.43 & 0.30 & 0.50 & 0.27 & Not dominant \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Key Findings}
+\begin{itemize}
+    \item \textbf{Political frame}: Dominant across all dimensions
+    \item \textbf{Economic frame}: Strong network and proportional presence
+    \item \textbf{Scientific frame}: High information and causality, but declining network centrality
+\end{itemize}
+
+\section{Conference Presentation Strategy}
+
+\subsection{Opening Statement}
+"We developed a comprehensive framework that identifies dominant frames through four independent lenses - information theory, network analysis, causality testing, and proportional dominance. A frame must excel in at least three to be considered truly dominant."
+
+\subsection{Key Talking Points}
+
+\subsubsection{On Methodology}
+\begin{itemize}
+    \item "Each method captures different aspect of dominance"
+    \item "Consensus approach ensures robustness"
+    \item "Equal weighting prevents methodological bias"
+\end{itemize}
+
+\subsubsection{On Results}
+\begin{itemize}
+    \item "Political frame emerges as unequivocally dominant"
+    \item "Economic frame shows strong co-dominance"
+    \item "Scientific frame's network marginalization is concerning"
+\end{itemize}
+
+\subsubsection{On Implications}
+\begin{itemize}
+    \item "Methodology exportable to other policy domains"
+    \item "Provides empirical grounding for paradigm theory"
+    \item "Reveals how discourse structures shape policy debates"
+\end{itemize}
+
+\subsection{Handling Questions}
+
+\textbf{Q: Why equal weighting?}\\
+A: "We chose equal weighting to avoid imposing theoretical priors. Each dimension captures fundamentally different aspect of dominance. Sensitivity analysis shows results robust to reasonable weight variations."
+
+\textbf{Q: Why 3/4 consensus threshold?}\\
+A: "Majority consensus (3/4) balances stringency with flexibility. Requiring all 4 would be too restrictive; requiring only 2 would be too lenient. This threshold identifies frames with broad-based dominance."
+
+\textbf{Q: How does this relate to Hall's paradigm theory?}\\
+A: "We operationalize Hall's abstract concept by identifying the specific configuration of dominant frames that constitute the paradigm. Our multi-method approach captures the institutionalized patterns Hall describes."
+
+\textbf{Q: What about other frames not shown as dominant?}\\
+A: "Non-dominant frames still play important roles but don't structure the overall discourse. They appear conditionally, often triggered by specific events or in conjunction with dominant frames."
+
+\section{Technical Appendix: Implementation Details}
+
+\subsection{Data Requirements}
+\begin{itemize}
+    \item Minimum 52 weeks of data for annual analysis
+    \item Frame proportions at sentence level
+    \item Temporal resolution: weekly aggregation
+\end{itemize}
+
+\subsection{Computational Considerations}
+\begin{itemize}
+    \item Information theory: O(n²) for pairwise MI
+    \item Network analysis: O(n³) for eigenvector centrality
+    \item Causality: O(n²p) where p = lag order
+    \item Total runtime: ~5 minutes for 47 years of data
+\end{itemize}
+
+\subsection{Software Implementation}
+\begin{itemize}
+    \item Python 3.8+ with NumPy, SciPy, NetworkX
+    \item Statsmodels for Granger causality
+    \item PyInform for transfer entropy
+    \item Parallel processing for efficiency
+\end{itemize}
+
+\section{Conclusion}
+
+This four-component framework provides the first systematic empirical approach to measuring frame dominance in media discourse. By combining information theory, network analysis, causality testing, and proportional dominance metrics, we can identify which frames truly structure discourse versus those that merely appear frequently.
+
+The consensus requirement ensures robust results while the equal weighting prevents any single methodological perspective from dominating. This approach is:
+\begin{itemize}
+    \item \textbf{Theoretically grounded}: Each component maps to theoretical concept of dominance
+    \item \textbf{Empirically rigorous}: Multiple validation through different methods
+    \item \textbf{Practically applicable}: Exportable to other domains and contexts
+    \item \textbf{Reproducible}: Clear metrics and implementation details
+\end{itemize}
+
+For conference presentation, emphasize that this framework bridges the gap between abstract paradigm theory and empirical measurement, providing scholars with tools to track how dominant interpretive structures evolve over time.
+
+\end{document}

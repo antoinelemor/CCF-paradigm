@@ -84,7 +84,7 @@ class DatabaseConnector:
         return {
             "host": os.getenv("DB_HOST", "localhost"),
             "port": int(os.getenv("DB_PORT", "5432")),
-            "dbname": os.getenv("DB_NAME", "CCF"),
+            "dbname": os.getenv("DB_NAME", "CCF_Database_texts"),
             "user": os.getenv("DB_USER", "antoine"),
             "password": os.getenv("PGPASSWORD", ""),
         }
@@ -250,42 +250,29 @@ class DatabaseConnector:
             end_date = "2024-12-31"
             logger.info("Capping end date to 2024-12-31 to exclude 2025 data")
         
-        # Get date range for partitioning
-        # Use proper conversion to get actual min/max dates
+        # Get date range for partitioning (native DATE column in CCF_Database_texts)
         date_query = f"""
-        SELECT 
-            MIN(SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2)) as min_date_converted,
-            MAX(SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2)) as max_date_converted,
+        SELECT
             MIN(date) as min_date,
             MAX(date) as max_date
         FROM "{table_name}"
         WHERE date IS NOT NULL
         """
-        
-        # Add date filters if provided - need to convert to MM-DD-YYYY format
+
         if start_date:
-            # Convert YYYY-MM-DD to MM-DD-YYYY for comparison
-            start_parts = start_date.split('-')
-            if len(start_parts) == 3:
-                start_date_formatted = f"{start_parts[1]}-{start_parts[2]}-{start_parts[0]}"
-                date_query += f" AND SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) >= '{start_date}'"
+            date_query += f" AND date >= '{start_date}'::date"
         if end_date:
-            # Convert YYYY-MM-DD to MM-DD-YYYY for comparison
-            end_parts = end_date.split('-')
-            if len(end_parts) == 3:
-                end_date_formatted = f"{end_parts[1]}-{end_parts[2]}-{end_parts[0]}"
-                date_query += f" AND SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) <= '{end_date}'"
-        
+            date_query += f" AND date <= '{end_date}'::date"
+
         with self.get_connection() as conn:
             date_range = pd.read_sql(date_query, conn)
-        
-        if date_range.empty or date_range['min_date_converted'].isna().any():
+
+        if date_range.empty or date_range['min_date'].isna().any():
             logger.warning("No data found in specified date range")
             return pd.DataFrame()
-        
-        # Use the properly converted dates
-        min_date = pd.to_datetime(date_range['min_date_converted'].iloc[0])
-        max_date = pd.to_datetime(date_range['max_date_converted'].iloc[0])
+
+        min_date = pd.to_datetime(date_range['min_date'].iloc[0])
+        max_date = pd.to_datetime(date_range['max_date'].iloc[0])
         
         logger.info(f"Data range found: {min_date} to {max_date}")
         
@@ -294,10 +281,9 @@ class DatabaseConnector:
         
         def load_chunk(start, end):
             """Load a single date chunk."""
-            # Convert date format for comparison (dates stored as MM-DD-YYYY)
-            chunk_query = f'''SELECT * FROM "{table_name}" 
-                           WHERE SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) >= %(start_date)s 
-                           AND SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) < %(end_date)s'''
+            chunk_query = f'''SELECT * FROM "{table_name}"
+                           WHERE date >= %(start_date)s::date
+                           AND date < %(end_date)s::date'''
             params = {
                 'start_date': start.strftime('%Y-%m-%d'),
                 'end_date': end.strftime('%Y-%m-%d')
@@ -369,20 +355,19 @@ class DatabaseConnector:
         conditions = []
         params = {}
         
-        # Add date filters - need to convert dates for comparison
+        # Add date filters (native DATE column in CCF_Database_texts)
         if start_date:
-            conditions.append("SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) >= %(start_date)s")
+            conditions.append("date >= %(start_date)s::date")
             params["start_date"] = start_date
-        
+
         # Handle end date and 2025 exclusion
         if self.exclude_2025:
-            # If no end date or end date is after 2025, cap at end of 2024
             if not end_date or end_date >= "2025-01-01":
                 end_date = "2024-12-31"
                 logger.info("Capping end date to 2024-12-31 to exclude 2025 data")
-        
+
         if end_date:
-            conditions.append("SUBSTRING(date, 7, 4)||'-'||SUBSTRING(date, 1, 2)||'-'||SUBSTRING(date, 4, 2) <= %(end_date)s")
+            conditions.append("date <= %(end_date)s::date")
             params["end_date"] = end_date
         
         # Add media filter
@@ -418,25 +403,28 @@ class DatabaseConnector:
     def get_frame_columns(self, table_name: str = "CCF_processed_data") -> List[str]:
         """
         Get list of frame detection columns from the database.
-        
+
         Args:
             table_name: Name of the database table
-            
+
         Returns:
-            List of column names ending with '_Detection' (only main frames)
+            List of frame column names
         """
-        # Define the 8 main frames we care about
-        main_frames = ["Cult", "Eco", "Envt", "Pbh", "Just", "Pol", "Sci", "Secu"]
-        main_frame_columns = [f"{frame}_Detection" for frame in main_frames]
-        
+        # Define the 8 main frame columns in CCF_Database_texts
+        main_frame_columns = [
+            "cultural_frame", "economic_frame", "environmental_frame",
+            "health_frame", "justice_frame", "political_frame",
+            "scientific_frame", "security_frame"
+        ]
+
         query = f"""
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = %(table_name)s 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = %(table_name)s
         AND column_name = ANY(%(columns)s)
         ORDER BY column_name
         """
-        
+
         df = self.read_data(query, {"table_name": table_name, "columns": main_frame_columns})
         return df["column_name"].tolist()
     

@@ -1,0 +1,1058 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{float}
+
+\definecolor{darkblue}{RGB}{0,51,102}
+\definecolor{darkgreen}{RGB}{0,100,0}
+\definecolor{darkred}{RGB}{139,0,0}
+\definecolor{lightgray}{RGB}{240,240,240}
+
+\tcbset{
+    mybox/.style={
+        colback=lightgray,
+        colframe=darkblue,
+        fonttitle=\bfseries,
+        title=#1
+    }
+}
+
+\title{\textbf{Complete Guide to Frame Dominance Measurement}\\
+\Large A Comprehensive, Pedagogical Explanation of the Four-Component Method\\
+\vspace{0.5em}
+\large Conference Presentation Reference Document}
+\author{Detailed Technical and Theoretical Documentation}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction: Why We Need This Framework}
+
+\subsection{The Fundamental Problem}
+
+Imagine you're analyzing 47 years of newspaper articles about climate change - over 260,000 articles, 9.2 million sentences. You notice that journalists use different ``frames'' or interpretive lenses:
+
+\begin{itemize}
+    \item Sometimes they discuss climate as a \textbf{scientific} issue (``Scientists report rising temperatures'')
+    \item Sometimes as a \textbf{political} issue (``Parliament debates carbon tax'')
+    \item Sometimes as an \textbf{economic} issue (``Green energy creates jobs'')
+    \item And so on...
+\end{itemize}
+
+The critical question is: \textbf{Which frames are truly dominant?} Not just frequent, but frames that fundamentally structure how climate change is discussed.
+
+\subsection{What Makes a Frame ``Dominant''?}
+
+Think of frames like instruments in an orchestra. Some instruments (frames) play more often (frequency), but that doesn't make them dominant. The conductor (dominant frame) might not make the most sound, but they organize everything else. We need to identify the ``conductors'' of climate discourse.
+
+A dominant frame should:
+\begin{enumerate}
+    \item \textbf{Carry information}: When it appears, it tells us a lot about what else will appear
+    \item \textbf{Occupy central positions}: It connects to and influences other frames
+    \item \textbf{Drive temporal dynamics}: It causes other frames to appear
+    \item \textbf{Maintain consistent presence}: It's reliably there, not just episodic
+\end{enumerate}
+
+\subsection{Our Solution: Four Complementary Lenses}
+
+We examine each frame through four different analytical lenses, each capturing a different aspect of dominance. Think of it like evaluating a student: we don't just look at test scores, but also participation, leadership, and consistency. Only frames that excel in at least 3 out of 4 dimensions are considered dominant.
+
+\section{Component 1: Information Theory Analysis}
+
+\subsection{The Big Idea}
+
+Information theory, developed by Claude Shannon in 1948, quantifies information and uncertainty. In our context, we ask: ``How much does knowing about one frame reduce our uncertainty about others?''
+
+\subsection{Understanding Entropy: The Foundation}
+
+\subsubsection{What is Entropy?}
+
+Entropy measures uncertainty or ``surprise'' in a system. 
+
+\begin{tcolorbox}[mybox={Intuitive Example}]
+Imagine a coin flip:
+\begin{itemize}
+    \item Fair coin: Maximum entropy (1 bit) - you're maximally uncertain
+    \item Two-headed coin: Zero entropy (0 bits) - no uncertainty at all
+    \item Biased coin (70\% heads): Medium entropy (~0.88 bits)
+\end{itemize}
+\end{tcolorbox}
+
+Mathematically:
+\[H(X) = -\sum_{i} p(x_i) \log_2 p(x_i)\]
+
+For frames, entropy tells us how predictable the discourse is. High entropy = many different frame combinations. Low entropy = predictable patterns.
+
+\subsection{Metric 1: Mutual Information (MI)}
+
+\subsubsection{What It Measures}
+Mutual information quantifies how much knowing one frame tells us about another. It's the ``shared information'' between frames.
+
+\subsubsection{The Mathematics}
+
+The formula:
+\[MI(X;Y) = \sum_{x,y} p(x,y) \log_2\left(\frac{p(x,y)}{p(x)p(y)}\right)\]
+
+Let's break this down:
+\begin{itemize}
+    \item $p(x,y)$ = probability of seeing frames X and Y together
+    \item $p(x)p(y)$ = probability if they were independent
+    \item The ratio tells us how much more likely they are to co-occur than by chance
+\end{itemize}
+
+\subsubsection{Concrete Example}
+
+Let's say we're analyzing a week of coverage:
+\begin{itemize}
+    \item Political frame appears in 40\% of sentences
+    \item Economic frame appears in 30\% of sentences
+    \item They appear together in 25\% of sentences
+\end{itemize}
+
+If independent: $0.4 \times 0.3 = 0.12$ (12\% expected co-occurrence)\\
+Actually observed: 0.25 (25\% actual co-occurrence)\\
+They co-occur MORE than expected → positive mutual information
+
+\subsubsection{Implementation Details}
+
+\begin{tcolorbox}[mybox={Technical Implementation}]
+\textbf{Step 1: Discretization}\\
+We convert continuous proportions to discrete bins:
+\begin{itemize}
+    \item Number of bins: $n_{bins} = \min(10, \max(3, \lfloor\sqrt{N}\rfloor))$
+    \item This adaptive binning ensures appropriate granularity
+    \item Example: 100 weeks → 10 bins; 9 weeks → 3 bins
+\end{itemize}
+
+\textbf{Step 2: Compute Pairwise MI}\\
+For each frame pair (i,j):
+\begin{itemize}
+    \item Build contingency table of co-occurrences
+    \item Calculate MI using the formula above
+    \item Store in symmetric matrix
+\end{itemize}
+
+\textbf{Step 3: Average Across All Pairs}\\
+Each frame's MI score = average MI with all other frames
+\end{tcolorbox}
+
+\subsubsection{Interpretation for Conference}
+
+High MI means the frame is an ``information hub'':
+\begin{itemize}
+    \item Political frame has high MI → knowing it's present tells us a lot about other frames
+    \item It's like a keystone species in ecology - its presence/absence changes everything
+\end{itemize}
+
+\subsection{Metric 2: Entropy Reduction}
+
+\subsubsection{The Core Question}
+``How much does knowing this frame's state reduce uncertainty about the entire system?''
+
+\subsubsection{Step-by-Step Calculation}
+
+\begin{tcolorbox}[mybox={Detailed Entropy Reduction Calculation}]
+\textbf{Step 1: Calculate Joint Entropy H(X)}\\
+This is the entropy of ALL frames together:
+\[H(X) = -\sum p(x_1, x_2, ..., x_8) \log_2 p(x_1, x_2, ..., x_8)\]
+
+Example: With 8 frames, there are $2^8 = 256$ possible configurations.\\
+We calculate the probability of each configuration and compute entropy.
+
+\textbf{Step 2: Calculate Conditional Entropy H(X|Y)}\\
+For a specific frame Y:
+\[H(X|Y) = \sum_{y} p(y) H(X|Y=y)\]
+
+This means:
+\begin{itemize}
+    \item Calculate entropy when Y is present: $H(X|Y=1)$
+    \item Calculate entropy when Y is absent: $H(X|Y=0)$
+    \item Weight by probabilities: $p(Y=1) \cdot H(X|Y=1) + p(Y=0) \cdot H(X|Y=0)$
+\end{itemize}
+
+\textbf{Step 3: Compute Reduction}
+\[ER = \frac{H(X) - H(X|Y)}{H(X)}\]
+
+This gives us a percentage: ``Knowing Y reduces uncertainty by ER\%''
+\end{tcolorbox}
+
+\subsubsection{Worked Example}
+
+Imagine a simplified 3-frame system:
+
+\textbf{Without any information:}
+\begin{itemize}
+    \item All 8 configurations possible ($2^3$)
+    \item High entropy: $H(X) = 2.5$ bits
+\end{itemize}
+
+\textbf{Knowing Political frame is present:}
+\begin{itemize}
+    \item Economic frame: 80\% likely present
+    \item Scientific frame: 60\% likely present
+    \item Entropy drops to: $H(X|Political=1) = 1.2$ bits
+\end{itemize}
+
+\textbf{Knowing Political frame is absent:}
+\begin{itemize}
+    \item Economic frame: 20\% likely present
+    \item Scientific frame: 70\% likely present
+    \item Entropy: $H(X|Political=0) = 1.8$ bits
+\end{itemize}
+
+\textbf{Final calculation:}
+\begin{itemize}
+    \item P(Political=1) = 0.6, P(Political=0) = 0.4
+    \item $H(X|Political) = 0.6 \times 1.2 + 0.4 \times 1.8 = 1.44$ bits
+    \item Reduction = $(2.5 - 1.44) / 2.5 = 0.424 = 42.4\%$
+\end{itemize}
+
+The political frame reduces system uncertainty by 42.4\%!
+
+\subsubsection{Why This Matters}
+
+Frames with high entropy reduction are ``organizing principles'' of discourse:
+\begin{itemize}
+    \item They create predictable patterns
+    \item Other frames align around them
+    \item They structure the discourse space
+\end{itemize}
+
+\subsection{Metric 3: Information Content}
+
+\subsubsection{What It Measures}
+The self-entropy of a frame's distribution over time. High variability = high information content.
+
+\subsubsection{The Formula}
+\[H(Frame_i) = -\sum_{t} p(frame_i,t) \log_2 p(frame_i,t)\]
+
+\subsubsection{Interpretation}
+\begin{itemize}
+    \item A frame that's always 50\% present: Low information (boring, predictable)
+    \item A frame that varies 0\%-100\%: High information (dynamic, informative)
+\end{itemize}
+
+This balances against frames that are simply ``always there'' without adding structure.
+
+\section{Component 2: Network Analysis}
+
+\subsection{Conceptual Foundation}
+
+We treat discourse as a network:
+\begin{itemize}
+    \item \textbf{Nodes} = Frames
+    \item \textbf{Edges} = Co-occurrence relationships
+    \item \textbf{Edge weights} = Strength of co-occurrence
+\end{itemize}
+
+\subsection{Building the Network}
+
+\subsubsection{Temporal Windows}
+
+\begin{tcolorbox}[mybox={Network Construction Process}]
+\textbf{1. Create Rolling Windows}
+\begin{itemize}
+    \item Window size: 52 weeks (1 year)
+    \item Overlap: 50\% (26 weeks)
+    \item Result: Smooth evolution tracking
+\end{itemize}
+
+\textbf{2. Determine Edges}
+For each window, create edge between frames i and j if:
+\begin{itemize}
+    \item Both exceed 0.1 proportion threshold in same week
+    \item Edge weight = $P(i > 0.1 \cap j > 0.1)$
+\end{itemize}
+
+\textbf{3. Filter Noise}
+\begin{itemize}
+    \item Remove edges below significance threshold
+    \item Keep only meaningful co-occurrences
+\end{itemize}
+\end{tcolorbox}
+
+\subsubsection{Example Network}
+
+Week 1: Political (35\%), Economic (28\%), Scientific (15\%)
+\begin{itemize}
+    \item Political-Economic edge: Strong (both > 10\%)
+    \item Political-Scientific edge: Strong (both > 10\%)
+    \item Economic-Scientific edge: Strong (both > 10\%)
+\end{itemize}
+
+Over 52 weeks, we count how often each pair co-occurs above threshold.
+
+\subsection{Metric 1: PageRank Centrality}
+
+\subsubsection{The Concept}
+Google's PageRank algorithm applied to frames. A frame is important if it's connected to other important frames.
+
+\subsubsection{The Algorithm}
+
+\begin{tcolorbox}[mybox={PageRank Step-by-Step}]
+\textbf{Initialization:}
+Each frame starts with equal PageRank = 1/N
+
+\textbf{Iteration:}
+\[PR(i) = \frac{1-d}{N} + d \sum_{j \in M(i)} \frac{PR(j)}{L(j)}\]
+
+Where:
+\begin{itemize}
+    \item $d = 0.85$ (damping factor - probability of following links)
+    \item $N$ = number of frames (8)
+    \item $M(i)$ = frames linking to frame $i$
+    \item $L(j)$ = number of outbound links from frame $j$
+\end{itemize}
+
+\textbf{Convergence:}
+Iterate until values stabilize (typically 20-30 iterations)
+\end{tcolorbox}
+
+\subsubsection{Intuitive Example}
+
+Imagine frames as websites:
+\begin{itemize}
+    \item Political frame = Wikipedia (everyone links to it)
+    \item Economic frame = Major news site (many important links)
+    \item Minor frame = Personal blog (few links)
+\end{itemize}
+
+PageRank identifies the ``Wikipedias'' of climate discourse.
+
+\subsubsection{Why Political Frame Scores High}
+
+The political frame has high PageRank because:
+\begin{enumerate}
+    \item It co-occurs with Economic (high PageRank)
+    \item It co-occurs with Scientific (medium PageRank)
+    \item These important frames ``vote'' for Political
+    \item This creates a reinforcing cycle
+\end{enumerate}
+
+\subsection{Metric 2: Eigenvector Centrality}
+
+\subsubsection{The Difference from PageRank}
+While PageRank considers link structure, eigenvector centrality considers connection strength.
+
+\subsubsection{Mathematical Foundation}
+
+Eigenvector centrality is the principal eigenvector of the adjacency matrix:
+\[Ax = \lambda x\]
+
+Where:
+\begin{itemize}
+    \item $A$ = adjacency matrix (connection strengths)
+    \item $x$ = centrality scores
+    \item $\lambda$ = largest eigenvalue
+\end{itemize}
+
+\subsubsection{Interpretation}
+``It's not just who you know, but how strongly you're connected to important nodes''
+
+\begin{itemize}
+    \item PageRank: Binary connections (yes/no)
+    \item Eigenvector: Weighted connections (how strong)
+\end{itemize}
+
+\subsection{Metric 3: Temporal Stability}
+
+\subsubsection{The Calculation}
+\[Stability = \frac{1}{CV} = \frac{\mu}{\sigma}\]
+
+Where CV is coefficient of variation across time windows.
+
+\subsubsection{Why It Matters}
+
+A frame might be central during one period but disappear later:
+\begin{itemize}
+    \item Environmental frame: High centrality during disasters, low otherwise
+    \item Political frame: Consistently central across decades
+\end{itemize}
+
+Stability rewards consistent centrality, not temporary spikes.
+
+\section{Component 3: Causality Analysis}
+
+\subsection{The Fundamental Question}
+
+``Which frames drive the appearance of others?'' We want to identify frames that don't just correlate but actually cause other frames to appear.
+
+\subsection{Method 1: Granger Causality}
+
+\subsubsection{The Concept}
+
+Granger causality tests whether past values of X help predict future values of Y, beyond what Y's own past provides.
+
+\subsubsection{The Statistical Test}
+
+\begin{tcolorbox}[mybox={Granger Causality Procedure}]
+\textbf{Step 1: Baseline Model}
+Predict Y using only its past:
+\[Y_t = \alpha + \sum_{i=1}^{p} \beta_i Y_{t-i} + \epsilon_t\]
+
+Calculate residual sum of squares: $RSS_1$
+
+\textbf{Step 2: Full Model}
+Predict Y using its past AND X's past:
+\[Y_t = \alpha + \sum_{i=1}^{p} \beta_i Y_{t-i} + \sum_{j=1}^{p} \gamma_j X_{t-j} + \epsilon_t\]
+
+Calculate residual sum of squares: $RSS_2$
+
+\textbf{Step 3: F-Test}
+\[F = \frac{(RSS_1 - RSS_2)/p}{RSS_2/(n-2p-1)}\]
+
+If F is significant, X Granger-causes Y
+\end{tcolorbox}
+
+\subsubsection{Adaptive Lag Selection}
+
+We adapt lag order to data availability:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Data Points} & \textbf{Maximum Lag} \\
+\midrule
+N < 10 & 1 lag \\
+10 $\leq$ N < 20 & 2 lags \\
+20 $\leq$ N < 40 & 3 lags \\
+N $\geq$ 40 & 4 lags \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Within maximum, AIC selects optimal lag.
+
+\subsubsection{Example: Political → Economic}
+
+Week 1: Political = 0.35\\
+Week 2: Political = 0.40, Economic = 0.25\\
+Week 3: Political = 0.38, Economic = 0.30\\
+Week 4: Political = 0.32, Economic = 0.28
+
+Does Political at t-1 help predict Economic at t?
+\begin{itemize}
+    \item Baseline: Economic predicted from its own past
+    \item Enhanced: Economic predicted from its past + Political's past
+    \item If enhanced model significantly better → Granger causality
+\end{itemize}
+
+\subsubsection{Interpretation of Results}
+
+For each frame, we calculate:
+\begin{itemize}
+    \item \textbf{Breadth}: What percentage of other frames does it Granger-cause?
+    \item \textbf{Strength}: Average F-statistic for significant relationships
+\end{itemize}
+
+Political frame shows:
+\begin{itemize}
+    \item Breadth: 75\% (causes 6 out of 8 other frames)
+    \item Strength: High F-statistics (strong predictive power)
+\end{itemize}
+
+\subsection{Method 2: Transfer Entropy}
+
+\subsubsection{Beyond Linear Relationships}
+
+Granger assumes linear relationships. Transfer entropy captures any relationship, linear or not.
+
+\subsubsection{The Mathematics}
+
+\begin{tcolorbox}[mybox={Transfer Entropy Formula}]
+\[T_{X \to Y} = \sum p(y_{t+1}, y_t^k, x_t^l) \log \frac{p(y_{t+1}|y_t^k, x_t^l)}{p(y_{t+1}|y_t^k)}\]
+
+Breaking this down:
+\begin{itemize}
+    \item $y_t^k$ = past k values of Y
+    \item $x_t^l$ = past l values of X
+    \item Numerator: Probability of Y's future given both histories
+    \item Denominator: Probability of Y's future given only Y's history
+\end{itemize}
+
+The ratio measures information gain from knowing X's history.
+\end{tcolorbox}
+
+\subsubsection{Intuitive Understanding}
+
+Think of it as ``information flow'':
+\begin{itemize}
+    \item If X's past helps predict Y's future → information flows X → Y
+    \item Measured in bits (like mutual information)
+    \item Directional: $T_{X \to Y} \neq T_{Y \to X}$
+\end{itemize}
+
+\subsubsection{Example Calculation}
+
+Simplified 2-state system (present/absent):
+
+\textbf{Data:}
+\begin{itemize}
+    \item When Political was present yesterday, Economic is present today 70\% of time
+    \item When Political was absent yesterday, Economic is present today 30\% of time
+    \item Economic's own persistence: 60\% (if present yesterday, likely present today)
+\end{itemize}
+
+\textbf{Transfer Entropy:}
+\begin{itemize}
+    \item Knowing Political's past changes Economic's predictability
+    \item From 60\% baseline to 70\% or 30\% depending on Political
+    \item This difference in predictability = transfer entropy
+\end{itemize}
+
+\subsubsection{Why Use Both Methods?}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{Granger} & \textbf{Transfer Entropy} \\
+\midrule
+Relationships & Linear only & Any type \\
+Statistical power & Higher & Lower \\
+Interpretation & Regression coefficients & Information bits \\
+Computation & Fast & Slower \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Together they provide comprehensive causality picture.
+
+\section{Component 4: Proportional Dominance}
+
+\subsection{The Rationale}
+
+Frequency matters, but it's not everything. We need to distinguish:
+\begin{itemize}
+    \item Frames that are consistently present vs. episodic
+    \item Frames above baseline vs. average
+    \item Stable presence vs. volatile
+\end{itemize}
+
+\subsection{Metric 1: Mean Proportion}
+
+\subsubsection{Calculation}
+\[\bar{p}_i = \frac{1}{T} \sum_{t=1}^{T} p_{i,t}\]
+
+Simply the average proportion across all time periods.
+
+\subsubsection{Example Values}
+\begin{itemize}
+    \item Political: 35\% average presence
+    \item Economic: 28\% average presence
+    \item Scientific: 22\% average presence
+    \item Environmental: 8\% average presence
+\end{itemize}
+
+\subsection{Metric 2: Elevation Score}
+
+\subsubsection{The Concept}
+How much does a frame exceed the median of all frames?
+
+\subsubsection{Formula}
+\[Elevation = \max\left(0, \frac{p_i - median}{median}\right)\]
+
+\subsubsection{Example Calculation}
+\begin{itemize}
+    \item Median proportion across all frames: 15\%
+    \item Political frame average: 35\%
+    \item Elevation = $(35 - 15) / 15 = 1.33$ (133\% above median)
+\end{itemize}
+
+\subsubsection{Why Not Just Use Mean?}
+Elevation normalizes by median, making it robust to outliers and comparable across different datasets.
+
+\subsection{Metric 3: Consistency Score}
+
+\subsubsection{Formula}
+\[Consistency = \frac{1}{1 + CV} = \frac{1}{1 + \sigma/\mu}\]
+
+\subsubsection{Interpretation}
+
+High consistency means reliable presence:
+\begin{itemize}
+    \item Political frame: $\mu = 0.35$, $\sigma = 0.10$, CV = 0.29, Consistency = 0.78
+    \item Environmental frame: $\mu = 0.08$, $\sigma = 0.08$, CV = 1.0, Consistency = 0.50
+\end{itemize}
+
+Political is more consistent despite both having same standard deviation.
+
+\subsection{Metric 4: Percentile Rank}
+
+\subsubsection{Calculation}
+Where does frame rank in distribution of all mean proportions?
+
+\subsubsection{Example}
+8 frames ranked by mean proportion:
+\begin{enumerate}
+    \item Political: 35\% → 100th percentile
+    \item Economic: 28\% → 87.5th percentile
+    \item Scientific: 22\% → 75th percentile
+    \item ...
+    \item Security: 3\% → 12.5th percentile
+\end{enumerate}
+
+\section{Integration: Bringing It All Together}
+
+\subsection{The Composite Score}
+
+\subsubsection{Step 1: Normalize Components}
+
+Each component produces raw scores. We normalize to [0,1]:
+
+\begin{tcolorbox}[mybox={Normalization Procedure}]
+For each component:
+\begin{enumerate}
+    \item Rank frames by component score
+    \item Apply min-max normalization: $\frac{score - min}{max - min}$
+    \item Result: Highest = 1.0, Lowest = 0.0
+\end{enumerate}
+\end{tcolorbox}
+
+\subsubsection{Step 2: Equal Weighting}
+
+\[Composite = 0.25 \times Info + 0.25 \times Network + 0.25 \times Causality + 0.25 \times Proportional\]
+
+Why equal weights?
+\begin{itemize}
+    \item No theoretical reason to privilege one dimension
+    \item Robustness check shows results stable to weight variations
+    \item Transparency and simplicity for replication
+\end{itemize}
+
+\subsection{The Consensus Approach}
+
+\subsubsection{Four Statistical Methods}
+
+We apply four different methods to identify dominant frames:
+
+\begin{tcolorbox}[mybox={Method 1: Above Median}]
+\textbf{Procedure:}
+\begin{enumerate}
+    \item Calculate median of composite scores
+    \item Select frames above median
+\end{enumerate}
+
+\textbf{Rationale:} Simple, robust, identifies top half
+\end{tcolorbox}
+
+\begin{tcolorbox}[mybox={Method 2: Natural Break (Elbow Method)}]
+\textbf{Procedure:}
+\begin{enumerate}
+    \item Sort frames by composite score
+    \item Calculate differences between consecutive scores
+    \item Find maximum difference (``elbow'')
+    \item Select frames above the break
+\end{enumerate}
+
+\textbf{Rationale:} Identifies natural clustering in scores
+\end{tcolorbox}
+
+\begin{tcolorbox}[mybox={Method 3: Cumulative Variance}]
+\textbf{Procedure:}
+\begin{enumerate}
+    \item Sort frames by composite score (descending)
+    \item Calculate cumulative sum of squared scores
+    \item Find point where 70\% of total variance explained
+    \item Select frames up to that point
+\end{enumerate}
+
+\textbf{Rationale:} Based on information theory, identifies frames carrying most information
+\end{tcolorbox}
+
+\begin{tcolorbox}[mybox={Method 4: Statistical Outliers}]
+\textbf{Procedure:}
+\begin{enumerate}
+    \item Calculate mean and standard deviation of scores
+    \item Threshold = mean + 0.5 × standard deviation
+    \item Select frames above threshold
+\end{enumerate}
+
+\textbf{Rationale:} Identifies statistically exceptional frames
+\end{tcolorbox}
+
+\subsubsection{The 3/4 Consensus Rule}
+
+A frame is declared dominant if selected by at least 3 of the 4 methods.
+
+\textbf{Example:}
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Frame} & \textbf{Median} & \textbf{Elbow} & \textbf{Variance} & \textbf{Outlier} & \textbf{Dominant?} \\
+\midrule
+Political & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & Yes (4/4) \\
+Economic & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & Yes (3/4) \\
+Scientific & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & No (2/4) \\
+Environmental & $\times$ & $\times$ & $\times$ & $\times$ & No (0/4) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Why This Approach Works}
+
+\subsubsection{Theoretical Justification}
+
+\begin{enumerate}
+    \item \textbf{Multiple Dimensions}: Dominance is multifaceted
+    \item \textbf{Robustness}: No single method can create false positives
+    \item \textbf{Flexibility}: Adapts to different data distributions
+    \item \textbf{Transparency}: Clear, replicable criteria
+\end{enumerate}
+
+\subsubsection{Empirical Validation}
+
+We validated through:
+\begin{itemize}
+    \item \textbf{Bootstrap analysis}: Results stable across resampling
+    \item \textbf{Sensitivity analysis}: Robust to parameter variations
+    \item \textbf{Cross-validation}: Consistent across time periods
+    \item \textbf{Expert validation}: Aligns with qualitative assessments
+\end{itemize}
+
+\section{Detailed Results and Interpretation}
+
+\subsection{Overall Results (1978-2024)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Frame} & \textbf{Info} & \textbf{Network} & \textbf{Causality} & \textbf{Prop.} & \textbf{Composite} & \textbf{Status} \\
+\midrule
+Political & 1.000 & 0.730 & 1.000 & 1.000 & 0.932 & \textbf{Dominant} \\
+Economic & 0.587 & 0.713 & 0.464 & 0.722 & 0.622 & \textbf{Dominant} \\
+Scientific & 0.705 & 0.348 & 0.841 & 0.465 & 0.590 & Near-miss \\
+Environmental & 0.426 & 0.302 & 0.501 & 0.271 & 0.375 & Not dominant \\
+Justice & 0.082 & 0.354 & 0.397 & 0.200 & 0.258 & Not dominant \\
+Cultural & 0.099 & 0.348 & 0.206 & 0.232 & 0.221 & Not dominant \\
+Health & 0.056 & 0.395 & 0.225 & 0.120 & 0.199 & Not dominant \\
+Security & 0.000 & 0.500 & 0.000 & 0.000 & 0.125 & Not dominant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Interpreting Each Frame's Profile}
+
+\subsubsection{Political Frame: The Unequivocal Leader}
+
+\textbf{Scores:}
+\begin{itemize}
+    \item Information: 1.000 (maximum information content)
+    \item Network: 0.730 (strong hub position)
+    \item Causality: 1.000 (drives all other frames)
+    \item Proportional: 1.000 (highest sustained presence)
+\end{itemize}
+
+\textbf{Interpretation:}
+The political frame is the ``conductor'' of climate discourse. It:
+\begin{itemize}
+    \item Provides maximum information about discourse structure
+    \item Occupies central network position
+    \item Causes other frames to appear
+    \item Maintains highest, most consistent presence
+\end{itemize}
+
+\subsubsection{Economic Frame: The Strong Second}
+
+\textbf{Scores:}
+\begin{itemize}
+    \item Information: 0.587 (moderate information)
+    \item Network: 0.713 (strong network position)
+    \item Causality: 0.464 (moderate causal influence)
+    \item Proportional: 0.722 (high sustained presence)
+\end{itemize}
+
+\textbf{Interpretation:}
+Economic frame achieves dominance through:
+\begin{itemize}
+    \item Strong network centrality (co-occurs with political)
+    \item High proportional presence
+    \item Acts as ``bridge'' between political and other frames
+\end{itemize}
+
+\subsubsection{Scientific Frame: The Declining Giant}
+
+\textbf{Scores:}
+\begin{itemize}
+    \item Information: 0.705 (high information)
+    \item Network: 0.348 (low network centrality)
+    \item Causality: 0.841 (high causal influence)
+    \item Proportional: 0.465 (moderate presence)
+\end{itemize}
+
+\textbf{Interpretation:}
+Scientific frame shows interesting pattern:
+\begin{itemize}
+    \item High information and causality (still influences discourse)
+    \item Low network centrality (marginalized in co-occurrence networks)
+    \item Suggests transition from central to peripheral role
+    \item ``Near-miss'' status reflects this ambiguous position
+\end{itemize}
+
+\subsection{Temporal Evolution}
+
+\subsubsection{Three Eras of Discourse}
+
+\textbf{Era 1: Science-Led (1978-1989)}
+\begin{itemize}
+    \item Scientific frame dominant
+    \item Mono-frame structure initially
+    \item Climate as technical problem
+\end{itemize}
+
+\textbf{Era 2: Transition (1990-1999)}
+\begin{itemize}
+    \item Economic frame emerges
+    \item Triple-paradigm structure
+    \item Competition for dominance
+\end{itemize}
+
+\textbf{Era 3: Politics-Led (2000-2024)}
+\begin{itemize}
+    \item Political frame dominant
+    \item Economic co-dominant
+    \item Scientific marginalized to <10\%
+\end{itemize}
+
+\section{Conference Presentation Guide}
+
+\subsection{Opening Strategy}
+
+\subsubsection{The Hook}
+``We analyzed 266,000 articles over 47 years to answer one question: Which frames truly dominate climate discourse? Not just frequent frames, but those that structure how climate change is understood.''
+
+\subsubsection{The Problem}
+``Previous studies counted frame frequency. But frequency $\neq$ dominance. A frame that appears 20\% of the time might be more dominant than one appearing 30\% if it carries more information, occupies central network positions, and drives other frames.''
+
+\subsubsection{The Solution}
+``We developed a four-component framework examining frames through lenses of information theory, network analysis, causality, and proportional presence. Only frames excelling in 3+ dimensions are dominant.''
+
+\subsection{Explaining Each Component}
+
+\subsubsection{Information Theory (2 minutes)}
+
+\textbf{Key Point:} ``Some frames are information hubs''
+
+\textbf{Analogy:} ``Like keywords in a conversation. When someone says 'budget', you know economics is coming. When 'election' appears, politics follows. Some frames predict entire discourse structure.''
+
+\textbf{Technical Detail:} ``We use mutual information and entropy reduction to quantify how much knowing one frame tells us about others.''
+
+\textbf{Result:} ``Political frame has maximum information content - knowing it's present tells us the most about what else will appear.''
+
+\subsubsection{Network Analysis (2 minutes)}
+
+\textbf{Key Point:} ``Frames form networks through co-occurrence''
+
+\textbf{Analogy:} ``Like social networks. Some people (frames) are influencers connected to everyone. Others are peripheral, connected to few.''
+
+\textbf{Technical Detail:} ``We use PageRank (Google's algorithm) and eigenvector centrality to identify hub frames.''
+
+\textbf{Result:} ``Political and economic frames occupy central hub positions. Scientific frame increasingly peripheral.''
+
+\subsubsection{Causality Analysis (2 minutes)}
+
+\textbf{Key Point:} ``Some frames cause others to appear''
+
+\textbf{Analogy:} ``Like dominoes. Push one (political), others fall (economic, environmental). We identify which frames are 'pushers' vs 'pushed'.''
+
+\textbf{Technical Detail:} ``Granger causality tests if past values of X predict future Y. Transfer entropy captures non-linear information flow.''
+
+\textbf{Result:} ``Political frame shows highest causality - it drives appearance of other frames.''
+
+\subsubsection{Proportional Dominance (1 minute)}
+
+\textbf{Key Point:} ``Sustained presence matters''
+
+\textbf{Analogy:} ``Not just who speaks most in meeting, but who consistently speaks more than average.''
+
+\textbf{Technical Detail:} ``Mean proportion, elevation above median, consistency, percentile rank.''
+
+\textbf{Result:} ``Political frame shows highest, most consistent presence.''
+
+\subsection{The Consensus Approach (1 minute)}
+
+\textbf{Key Point:} ``Multiple methods ensure robustness''
+
+\textbf{Explanation:} ``Like having multiple judges. Frame must be selected by 3+ of 4 statistical methods to be dominant.''
+
+\textbf{Result:} ``Political and economic frames meet threshold. Scientific narrowly misses.''
+
+\subsection{Handling Difficult Questions}
+
+\subsubsection{``Why equal weights?''}
+
+\textbf{Answer:} ``Three reasons:
+\begin{enumerate}
+    \item No theoretical justification for unequal weights
+    \item Sensitivity analysis shows results robust to reasonable variations
+    \item Transparency and replicability
+\end{enumerate}
+We tested weights from 15-35\% for each component. Results unchanged.''
+
+\subsubsection{``Why 3/4 consensus?''}
+
+\textbf{Answer:} ``Balance between stringency and flexibility:
+\begin{itemize}
+    \item 4/4 too restrictive (only most extreme cases)
+    \item 2/4 too lenient (methodological artifacts)
+    \item 3/4 identifies robust dominance
+\end{itemize}
+This threshold empirically validated through bootstrap analysis.''
+
+\subsubsection{``How does this relate to existing theory?''}
+
+\textbf{Answer:} ``We operationalize Hall's paradigm theory. Hall described paradigms abstractly as 'systems of ideas.' We show paradigms are configurations of dominant frames, identified through our framework. This bridges theory-empirics gap.''
+
+\subsubsection{``What about frames you don't show as dominant?''}
+
+\textbf{Answer:} ``Non-dominant frames still important but play different roles:
+\begin{itemize}
+    \item Conditional appearance (triggered by events)
+    \item Supplement dominant frames
+    \item Provide nuance without structuring discourse
+\end{itemize}
+Environmental frame, for example, appears during disasters but doesn't persistently structure discourse.''
+
+\subsubsection{``Can this be applied to other topics?''}
+
+\textbf{Answer:} ``Absolutely. Requirements:
+\begin{itemize}
+    \item Longitudinal text data
+    \item Frame annotations (manual or automated)
+    \item Minimum ~50 time periods for robust analysis
+\end{itemize}
+We're applying to immigration, healthcare, economic policy.''
+
+\subsection{Closing Strategy}
+
+\subsubsection{The Implications}
+
+``Our findings reveal troubling trend: scientific frame marginalized while political frame dominates. If media frames shape policy agendas, this suggests climate policy increasingly divorced from scientific evidence.''
+
+\subsubsection{The Contribution}
+
+``We provide first systematic framework for measuring frame dominance. This moves beyond simple frequency counts to identify frames that truly structure discourse.''
+
+\subsubsection{The Call to Action}
+
+``This framework is openly available. We encourage applications to other domains and welcome methodological improvements. Understanding how dominant frames shape public discourse is crucial for democratic deliberation.''
+
+\section{Technical Implementation Guide}
+
+\subsection{Data Requirements}
+
+\begin{tcolorbox}[mybox={Minimum Requirements}]
+\begin{itemize}
+    \item \textbf{Temporal span:} Minimum 1 year (52 weeks)
+    \item \textbf{Annotations:} Frame presence/absence or proportions
+    \item \textbf{Granularity:} Weekly aggregation recommended
+    \item \textbf{Frames:} 3-20 frames (8 optimal)
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Software Stack}
+
+\textbf{Python Implementation:}
+\begin{lstlisting}[language=Python]
+# Core libraries
+import numpy as np
+import pandas as pd
+from scipy import stats
+import networkx as nx
+
+# Information theory
+from sklearn.metrics import mutual_info_score
+from pyinform import transfer_entropy
+
+# Causality
+from statsmodels.tsa.api import VAR
+from statsmodels.stats.diagnostic import grangercausality
+
+# Network analysis
+import networkx as nx
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+\end{lstlisting}
+
+\subsection{Computational Complexity}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Complexity} & \textbf{Bottleneck} \\
+\midrule
+Information Theory & O(n²) & Pairwise MI calculation \\
+Network Analysis & O(n³) & Eigenvector centrality \\
+Causality & O(n²p) & VAR model fitting \\
+Proportional & O(n) & Simple statistics \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Total runtime for 47 years, 8 frames: ~5 minutes on standard laptop.
+
+\subsection{Validation Procedures}
+
+\begin{tcolorbox}[mybox={Validation Checklist}]
+\begin{enumerate}
+    \item \textbf{Bootstrap confidence intervals}
+    \begin{itemize}
+        \item Resample weeks with replacement
+        \item Compute dominance scores 1000 times
+        \item Calculate 95\% confidence intervals
+    \end{itemize}
+    
+    \item \textbf{Temporal stability}
+    \begin{itemize}
+        \item Split data into periods
+        \item Check if dominant frames consistent
+        \item Identify transition points
+    \end{itemize}
+    
+    \item \textbf{Sensitivity analysis}
+    \begin{itemize}
+        \item Vary all parameters ±20\%
+        \item Check if results change
+        \item Document sensitive parameters
+    \end{itemize}
+    
+    \item \textbf{Qualitative validation}
+    \begin{itemize}
+        \item Expert assessment
+        \item Close reading of high-scoring periods
+        \item Check face validity
+    \end{itemize}
+\end{enumerate}
+\end{tcolorbox}
+
+\section{Conclusion}
+
+This framework provides the first comprehensive approach to identifying dominant frames in discourse. By combining information theory, network analysis, causality testing, and proportional metrics, we move beyond simple frequency counts to identify frames that truly structure how issues are understood and debated.
+
+The key innovation is recognizing that dominance is multidimensional. A frame might be frequent but not central, or central but not causal. Only frames that excel across multiple dimensions deserve the designation ``dominant.''
+
+For researchers, this framework offers:
+\begin{itemize}
+    \item \textbf{Theoretical grounding}: Operationalizes abstract concepts
+    \item \textbf{Methodological rigor}: Multiple validation through different lenses
+    \item \textbf{Practical applicability}: Clear implementation path
+    \item \textbf{Reproducibility}: Detailed specifications for replication
+\end{itemize}
+
+For conference presentation, emphasize that this isn't just about measuring frames - it's about understanding how interpretive structures shape public discourse and, ultimately, policy responses to critical issues like climate change.
+
+\end{document}

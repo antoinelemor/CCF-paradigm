@@ -53,9 +53,28 @@ logger = logging.getLogger(__name__)
 class FrameDataProcessor:
     """Processes frame detection data with parallel computing capabilities."""
     
-    # Frame short codes - ONLY the 8 main frames
+    # Frame column names in CCF_Database_texts
+    FRAME_COLUMNS = [
+        "cultural_frame", "economic_frame", "environmental_frame",
+        "health_frame", "justice_frame", "political_frame",
+        "scientific_frame", "security_frame"
+    ]
+
+    # Short codes used for output DataFrames
     FRAME_CODES = ["Cult", "Eco", "Envt", "Pbh", "Just", "Pol", "Sci", "Secu"]
-    
+
+    # DB column -> short code mapping
+    FRAME_COL_TO_CODE = {
+        "cultural_frame": "Cult",
+        "economic_frame": "Eco",
+        "environmental_frame": "Envt",
+        "health_frame": "Pbh",
+        "justice_frame": "Just",
+        "political_frame": "Pol",
+        "scientific_frame": "Sci",
+        "security_frame": "Secu",
+    }
+
     # Frame full names mapping
     FRAME_NAMES = {
         "Cult": "Culture",
@@ -113,11 +132,10 @@ class FrameDataProcessor:
         if show_progress:
             pbar.update(1)
         
-        # Get frame detection columns
-        frame_cols = [f"{code}_Detection" for code in self.FRAME_CODES 
-                     if f"{code}_Detection" in df.columns]
-        
-        # Convert detection columns to numeric
+        # Get frame columns (new names from CCF_Database_texts)
+        frame_cols = [col for col in self.FRAME_COLUMNS if col in df.columns]
+
+        # Convert frame columns to numeric
         for col in frame_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         if show_progress:
@@ -142,9 +160,8 @@ class FrameDataProcessor:
         Returns:
             DataFrame with article-level proportions
         """
-        frame_cols = [f"{code}_Detection" for code in self.FRAME_CODES 
-                     if f"{code}_Detection" in df.columns]
-        
+        frame_cols = [col for col in self.FRAME_COLUMNS if col in df.columns]
+
         if show_progress:
             tqdm.pandas(desc="Calculating article proportions")
             article_groups = df.groupby('doc_id', progress=True)
@@ -194,8 +211,8 @@ class FrameDataProcessor:
             article_props['period'] = article_props['date'].dt.to_period('Y').dt.to_timestamp()
         
         # Get frame columns
-        frame_cols = [col for col in article_props.columns if col.endswith('_Detection')]
-        
+        frame_cols = [col for col in article_props.columns if col.endswith('_frame')]
+
         # Aggregate by period
         return article_props.groupby('period')[frame_cols].mean().reset_index()
     
@@ -253,7 +270,7 @@ class FrameDataProcessor:
         combined = pd.concat(results, ignore_index=True)
         
         # Final aggregation (in case chunks had overlapping periods)
-        frame_cols = [col for col in combined.columns if col.endswith('_Detection')]
+        frame_cols = [col for col in combined.columns if col.endswith('_frame')]
         final_result = combined.groupby('period')[frame_cols].mean().reset_index()
         
         return final_result.sort_values('period')
@@ -269,35 +286,33 @@ class FrameDataProcessor:
         Returns:
             DataFrame with frame counts per period
         """
-        frame_cols = [f"{code}_Detection" for code in self.FRAME_CODES 
-                     if f"{code}_Detection" in df.columns]
-        
+        frame_cols = [col for col in self.FRAME_COLUMNS if col in df.columns]
+
         if show_progress:
             pbar = tqdm(total=3, desc="Calculating frame counts")
-        
+
         # Create weekly periods
         df_copy = df.copy()
         df_copy['week'] = df_copy['date'].dt.to_period('W').dt.to_timestamp()
-        
+
         # Exclude 2025 data
         if self.exclude_2025:
             df_copy = df_copy[df_copy['date'].dt.year < 2025]
         if show_progress:
             pbar.update(1)
-        
+
         # Ensure frame columns are numeric
         for col in frame_cols:
             df_copy[col] = pd.to_numeric(df_copy[col], errors='coerce').fillna(0).astype(float)
         if show_progress:
             pbar.update(1)
-        
+
         # Sum detections by week
         weekly_counts = df_copy.groupby('week')[frame_cols].sum().reset_index()
-        
-        # Rename columns to remove '_Detection'
-        rename_dict = {f"{code}_Detection": code for code in self.FRAME_CODES}
-        weekly_counts = weekly_counts.rename(columns=rename_dict)
-        
+
+        # Rename columns from DB names to short codes
+        weekly_counts = weekly_counts.rename(columns=self.FRAME_COL_TO_CODE)
+
         # Ensure all values are float
         for code in self.FRAME_CODES:
             if code in weekly_counts.columns:

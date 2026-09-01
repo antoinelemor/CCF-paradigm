@@ -67,7 +67,7 @@ class FastMultiFrameAnalyzer:
         self.db_params = {
             "host": "localhost",
             "port": 5432,
-            "dbname": "CCF",
+            "dbname": "CCF_Database_texts",
             "user": "antoine",
             "password": ""
         }
@@ -112,33 +112,33 @@ class FastMultiFrameAnalyzer:
         # This does all the heavy lifting in PostgreSQL which is much faster
         query = """
         WITH weekly_aggregates AS (
-            SELECT 
-                DATE_TRUNC('week', TO_DATE(date, 'MM-DD-YYYY')) as week,
-                AVG("Cult_Detection") as cult_avg,
-                AVG("Eco_Detection") as eco_avg,
-                AVG("Envt_Detection") as envt_avg,
-                AVG("Pbh_Detection") as pbh_avg,
-                AVG("Just_Detection") as just_avg,
-                AVG("Pol_Detection") as pol_avg,
-                AVG("Sci_Detection") as sci_avg,
-                AVG("Secu_Detection") as secu_avg,
+            SELECT
+                DATE_TRUNC('week', date) as week,
+                AVG("cultural_frame") as cult_avg,
+                AVG("economic_frame") as eco_avg,
+                AVG("environmental_frame") as envt_avg,
+                AVG("health_frame") as pbh_avg,
+                AVG("justice_frame") as just_avg,
+                AVG("political_frame") as pol_avg,
+                AVG("scientific_frame") as sci_avg,
+                AVG("security_frame") as secu_avg,
                 COUNT(DISTINCT doc_id) as doc_count,
                 COUNT(*) as sentence_count
             FROM "CCF_processed_data"
-            WHERE sentences IS NOT NULL 
+            WHERE sentences IS NOT NULL
                 AND sentences != ''
-                AND TO_DATE(date, 'MM-DD-YYYY') <= '2024-12-31'::date
+                AND date <= '2024-12-31'::date
         """
-        
+
         if start_date:
-            query += f" AND TO_DATE(date, 'MM-DD-YYYY') >= '{start_date}'::date"
-        
+            query += f" AND date >= '{start_date}'::date"
+
         query += """
-            GROUP BY DATE_TRUNC('week', TO_DATE(date, 'MM-DD-YYYY'))
+            GROUP BY DATE_TRUNC('week', date)
         )
-        SELECT 
+        SELECT
             week,
-            cult_avg, eco_avg, envt_avg, pbh_avg, 
+            cult_avg, eco_avg, envt_avg, pbh_avg,
             just_avg, pol_avg, sci_avg, secu_avg,
             doc_count, sentence_count
         FROM weekly_aggregates

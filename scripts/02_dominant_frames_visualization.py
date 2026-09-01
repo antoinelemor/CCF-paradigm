@@ -162,33 +162,33 @@ class PublicationVisualizer:
             # Use SQL aggregation for efficiency
             query = '''
             WITH monthly_data AS (
-                SELECT 
-                    DATE_TRUNC('month', TO_DATE(date, 'MM-DD-YYYY')) as month,
+                SELECT
+                    DATE_TRUNC('month', date) as month,
                     doc_id,
-                    AVG("Cult_Detection") as "Cult_Detection",
-                    AVG("Eco_Detection") as "Eco_Detection", 
-                    AVG("Envt_Detection") as "Envt_Detection",
-                    AVG("Pbh_Detection") as "Pbh_Detection",
-                    AVG("Just_Detection") as "Just_Detection",
-                    AVG("Pol_Detection") as "Pol_Detection",
-                    AVG("Sci_Detection") as "Sci_Detection",
-                    AVG("Secu_Detection") as "Secu_Detection"
+                    AVG("cultural_frame") as "cultural_frame",
+                    AVG("economic_frame") as "economic_frame",
+                    AVG("environmental_frame") as "environmental_frame",
+                    AVG("health_frame") as "health_frame",
+                    AVG("justice_frame") as "justice_frame",
+                    AVG("political_frame") as "political_frame",
+                    AVG("scientific_frame") as "scientific_frame",
+                    AVG("security_frame") as "security_frame"
                 FROM "CCF_processed_data"
-                WHERE TO_DATE(date, 'MM-DD-YYYY') <= %(end_date)s::date
-                AND sentences IS NOT NULL 
+                WHERE date <= %(end_date)s::date
+                AND sentences IS NOT NULL
                 AND sentences != ''
-                GROUP BY DATE_TRUNC('month', TO_DATE(date, 'MM-DD-YYYY')), doc_id
+                GROUP BY DATE_TRUNC('month', date), doc_id
             )
-            SELECT 
+            SELECT
                 month,
-                AVG("Cult_Detection") as "Cult",
-                AVG("Eco_Detection") as "Eco",
-                AVG("Envt_Detection") as "Envt",
-                AVG("Pbh_Detection") as "Pbh",
-                AVG("Just_Detection") as "Just",
-                AVG("Pol_Detection") as "Pol",
-                AVG("Sci_Detection") as "Sci",
-                AVG("Secu_Detection") as "Secu"
+                AVG("cultural_frame") as "Cult",
+                AVG("economic_frame") as "Eco",
+                AVG("environmental_frame") as "Envt",
+                AVG("health_frame") as "Pbh",
+                AVG("justice_frame") as "Just",
+                AVG("political_frame") as "Pol",
+                AVG("scientific_frame") as "Sci",
+                AVG("security_frame") as "Secu"
             FROM monthly_data
             GROUP BY month
             ORDER BY month
@@ -640,7 +640,7 @@ class PublicationVisualizer:
         if len(years) > 10:
             window = min(7, len(years)//4)
             n_smooth = pd.Series(n_dominant).rolling(window=window, center=True).mean()
-            n_smooth = n_smooth.fillna(method='bfill').fillna(method='ffill')
+            n_smooth = n_smooth.bfill().ffill()
             
             ax2.fill_between(years, 0, n_smooth, alpha=0.3, color='#3498db')
             ax2.plot(years, n_smooth, color='#2c3e50', linewidth=2.5)

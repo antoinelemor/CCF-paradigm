@@ -1,0 +1,24 @@
+[project]
+name = "ccf-paradigm"
+version = "1.0.0"
+description = "Paradigm dominance analysis for CCF frame data"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "scikit-learn",
+    "networkx",
+    "statsmodels",
+    "tqdm",
+]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ccf_paradigm"]
+
+[tool.setuptools.package-dir]
+ccf_paradigm = "src"

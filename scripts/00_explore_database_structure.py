@@ -56,7 +56,7 @@ class DatabaseExplorer:
         self.db_params = {
             "host": os.getenv("DB_HOST", "localhost"),
             "port": os.getenv("DB_PORT", "5432"),
-            "dbname": os.getenv("DB_NAME", "CCF"),
+            "dbname": os.getenv("DB_NAME", "CCF_Database_texts"),
             "user": os.getenv("DB_USER", "antoine"),
             "password": os.getenv("PGPASSWORD", ""),
         }
@@ -146,51 +146,43 @@ class DatabaseExplorer:
         print("FRAME DETECTION COLUMNS")
         print("="*60)
         
-        # Get all columns ending with _Detection
+        # Get all frame columns (CCF_Database_texts uses _frame suffix)
+        main_frame_columns = [
+            "cultural_frame", "economic_frame", "environmental_frame",
+            "health_frame", "justice_frame", "political_frame",
+            "scientific_frame", "security_frame"
+        ]
+
         query = """
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = %(table_name)s 
-        AND column_name LIKE '%%_Detection'
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = %(table_name)s
+        AND column_name = ANY(%(columns)s)
         ORDER BY column_name;
         """
-        
-        frame_cols_df = pd.read_sql(query, self.engine, params={"table_name": table_name})
-        frame_columns = frame_cols_df['column_name'].tolist()
-        
-        print(f"\nFound {len(frame_columns)} frame detection columns:")
-        
-        # Separate main frames from others
-        main_frames = ["Cult", "Eco", "Envt", "Pbh", "Just", "Pol", "Sci", "Secu"]
-        main_frame_cols = []
-        other_frame_cols = []
-        
-        for col in frame_columns:
-            frame_name = col.replace('_Detection', '')
-            if frame_name in main_frames:
-                main_frame_cols.append(col)
-                print(f"  - {col} (Main Frame: {frame_name})")
-            else:
-                other_frame_cols.append(col)
-        
-        if other_frame_cols:
-            print(f"\nOther detection columns (not used for paradigm analysis):")
-            for col in other_frame_cols:
-                print(f"  - {col}")
-        
-        # Get emotion columns
-        query_emotions = """
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = %(table_name)s 
-        AND column_name LIKE 'Emotion:%%'
+
+        frame_cols_df = pd.read_sql(query, self.engine,
+                                    params={"table_name": table_name,
+                                            "columns": main_frame_columns})
+        main_frame_cols = frame_cols_df['column_name'].tolist()
+
+        print(f"\nFound {len(main_frame_cols)} frame columns:")
+        for col in main_frame_cols:
+            print(f"  - {col}")
+
+        # Get tone columns (CCF_Database_texts uses tone_ prefix)
+        query_tones = """
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = %(table_name)s
+        AND column_name LIKE 'tone_%%'
         ORDER BY column_name;
         """
-        
-        emotion_cols_df = pd.read_sql(query_emotions, self.engine, params={"table_name": table_name})
-        emotion_columns = emotion_cols_df['column_name'].tolist()
-        
-        print(f"\nFound {len(emotion_columns)} emotion columns:")
+
+        tone_cols_df = pd.read_sql(query_tones, self.engine, params={"table_name": table_name})
+        emotion_columns = tone_cols_df['column_name'].tolist()
+
+        print(f"\nFound {len(emotion_columns)} tone columns:")
         for col in emotion_columns:
             print(f"  - {col}")
         
@@ -267,8 +259,8 @@ class DatabaseExplorer:
         if main_frame_cols:
             print("\nFrame detection statistics (8 main frames only):")
             frame_stats_query = f"""
-            SELECT 
-                {', '.join([f'SUM(CASE WHEN "{col}" = 1 THEN 1 ELSE 0 END) as {col.replace("_Detection", "")}' for col in main_frame_cols])}
+            SELECT
+                {', '.join([f'SUM(CASE WHEN "{col}" = 1 THEN 1 ELSE 0 END) as "{col}"' for col in main_frame_cols])}
             FROM "{table_name}";
             """
             frame_stats = pd.read_sql(frame_stats_query, self.engine)
@@ -307,9 +299,13 @@ class DatabaseExplorer:
         
         sample_df = pd.read_sql(query, self.engine)
         
-        # Check frame columns - only the 8 main frames
-        main_frames = ["Cult", "Eco", "Envt", "Pbh", "Just", "Pol", "Sci", "Secu"]
-        frame_cols = [f"{frame}_Detection" for frame in main_frames if f"{frame}_Detection" in sample_df.columns]
+        # Check frame columns - the 8 main frames in CCF_Database_texts
+        main_frame_columns = [
+            "cultural_frame", "economic_frame", "environmental_frame",
+            "health_frame", "justice_frame", "political_frame",
+            "scientific_frame", "security_frame"
+        ]
+        frame_cols = [col for col in main_frame_columns if col in sample_df.columns]
         
         print("\nMain frame column data types and unique values:")
         for col in frame_cols:
